@@ -2,7 +2,7 @@ package com.omnify.hire.randnumsort;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
@@ -24,8 +24,7 @@ public class MergeSortService extends IntentService {
                 ArrayList<Integer> list =
                         intent.getIntegerArrayListExtra(GeneratorFragment.LIST_PARAM);
 
-                final MergeSort mergeSort = new MergeSort();
-                mergeSort.sort(list);
+                MergeSort.sort(list);
 
                 Intent broadcastIntent = new Intent(BROADCAST_ACTION_SORTED);
                 broadcastIntent.putIntegerArrayListExtra(SORTED_LIST_PARAM, list);
