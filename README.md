@@ -1,6 +1,6 @@
 # RandNumSort
 
-[![CI](https://github.com/saurvs/android-RandNumSort/actions/workflows/ci.yml/badge.svg)](https://github.com/saurvs/android-RandNumSort/actions/workflows/ci.yml)
+[![CI](https://github.com/sauravsc/android-RandNumSort/actions/workflows/ci.yml/badge.svg)](https://github.com/sauravsc/android-RandNumSort/actions/workflows/ci.yml)
 
 An Android app that generates 40 random two-digit numbers and sorts them with merge sort and quick sort
 in two background services, showing both sorted lists side by side.
@@ -24,4 +24,4 @@ emulator with `adb install app/build/outputs/apk/debug/app-debug.apk`.
 
 Instrumented tests (`app/src/androidTest`) need a device or emulator: `./gradlew connectedDebugAndroidTest`.
 
-Debug APKs are attached to each [GitHub release](https://github.com/saurvs/android-RandNumSort/releases).
+Debug APKs are attached to each [GitHub release](https://github.com/sauravsc/android-RandNumSort/releases).
