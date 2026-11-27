@@ -1,17 +1,19 @@
 package com.omnify.hire.randnumsort;
 
-import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
@@ -24,9 +26,12 @@ public class GeneratorFragment extends Fragment {
     private static final Integer RAND_MIN = 10;
     private static final Integer RAND_MAX = 99;
 
-    private ArrayAdapter arrayAdapter;
+    private ArrayAdapter<Integer> arrayAdapter;
     private ArrayList<Integer> qSortedList;
     private ArrayList<Integer> mSortedList;
+
+    private final BroadcastReceiver qSortBroadcastReceiver = new QSortBroadcastReceiver();
+    private final BroadcastReceiver mSortBroadcastReceiver = new MSortBroadcastReceiver();
 
     public GeneratorFragment() {}
 
@@ -38,12 +43,27 @@ public class GeneratorFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnSortedListener) {
+            listener = (OnSortedListener) context;
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        listener = null;
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_generator, container, false);
 
         if (arrayAdapter == null) {
-            arrayAdapter = new ArrayAdapter(getActivity(), R.layout.list_item, new ArrayList());
+            arrayAdapter = new ArrayAdapter<>(requireContext(), R.layout.list_item,
+                    new ArrayList<>());
             generateRandomNumbers();
         }
 
@@ -51,39 +71,26 @@ public class GeneratorFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         ListView listView = view.findViewById(R.id.unsortedListView);
         listView.setAdapter(arrayAdapter);
 
-        IntentFilter qSortedIntentFilter =
-                new IntentFilter(QuickSortService.BROADCAST_ACTION_SORTED);
-        IntentFilter mSortedintentFilter =
-                new IntentFilter(MergeSortService.BROADCAST_ACTION_SORTED);
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(requireContext());
+        broadcastManager.registerReceiver(qSortBroadcastReceiver,
+                new IntentFilter(QuickSortService.BROADCAST_ACTION_SORTED));
+        broadcastManager.registerReceiver(mSortBroadcastReceiver,
+                new IntentFilter(MergeSortService.BROADCAST_ACTION_SORTED));
 
-        QSortBroadcastReceiver qSortBroadcastReceiver = new QSortBroadcastReceiver();
-        MSortBroadcastReceiver mSortBroadcastReceiver = new MSortBroadcastReceiver();
+        view.findViewById(R.id.gen_button).setOnClickListener(this::genButtonClicked);
+        view.findViewById(R.id.sort_button).setOnClickListener(this::sortButtonClicked);
+    }
 
-        LocalBroadcastManager.getInstance(getActivity())
-                .registerReceiver(qSortBroadcastReceiver, qSortedIntentFilter);
-        LocalBroadcastManager.getInstance(getActivity())
-                .registerReceiver(mSortBroadcastReceiver, mSortedintentFilter);
-
-        view.findViewById(R.id.gen_button).setOnClickListener(
-            new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    genButtonClicked(v);
-                }
-            }
-        );
-        view.findViewById(R.id.sort_button).setOnClickListener(
-            new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    sortButtonClicked(v);
-                }
-            }
-        );
+    @Override
+    public void onDestroyView() {
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(requireContext());
+        broadcastManager.unregisterReceiver(qSortBroadcastReceiver);
+        broadcastManager.unregisterReceiver(mSortBroadcastReceiver);
+        super.onDestroyView();
     }
 
     public void genButtonClicked(View view) {
@@ -94,20 +101,22 @@ public class GeneratorFragment extends Fragment {
         mSortedList = null;
         qSortedList = null;
 
-        ArrayList list = new ArrayList(arrayAdapter.getCount());
+        ArrayList<Integer> list = new ArrayList<>(arrayAdapter.getCount());
         for (int i = 0; i < arrayAdapter.getCount(); i++) {
             list.add(arrayAdapter.getItem(i));
         }
 
-        Intent qSortIntent = new Intent(getActivity(), QuickSortService.class);
+        Context context = requireContext();
+
+        Intent qSortIntent = new Intent(context, QuickSortService.class);
         qSortIntent.setAction(QuickSortService.ACTION_SORT);
         qSortIntent.putIntegerArrayListExtra(LIST_PARAM, list);
-        getActivity().startService(qSortIntent);
+        context.startService(qSortIntent);
 
-        Intent mSortIntent = new Intent(getActivity(), MergeSortService.class);
+        Intent mSortIntent = new Intent(context, MergeSortService.class);
         mSortIntent.setAction(MergeSortService.ACTION_SORT);
         mSortIntent.putIntegerArrayListExtra(LIST_PARAM, list);
-        getActivity().startService(mSortIntent);
+        context.startService(mSortIntent);
     }
 
     private class QSortBroadcastReceiver extends BroadcastReceiver {
@@ -130,10 +139,6 @@ public class GeneratorFragment extends Fragment {
                 listener.onSorted(mSortedList, qSortedList);
             }
         }
-    }
-
-    public void setOnSortedListener(OnSortedListener l) {
-        listener = l;
     }
 
     public interface OnSortedListener {

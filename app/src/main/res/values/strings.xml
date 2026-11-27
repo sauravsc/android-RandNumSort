@@ -4,6 +4,6 @@
     <string name="sort_button_label">Sort</string>
     <string name="gen_frag_title">Generate numbers</string>
     <string name="sort_frag_title">Sorted numbers</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="merge_sorted_label">Merge Sorted</string>
+    <string name="quick_sorted_label">Quick Sorted</string>
 </resources>
