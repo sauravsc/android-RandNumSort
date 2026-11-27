@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 public class QuickSort {
     public void sort(ArrayList<Integer> a) {
+        if (a.size() < 2)
+            return;
         quickSort(a, 0, a.size() - 1);
     }
 
@@ -25,7 +27,7 @@ public class QuickSort {
                 j--;
             }
         }
-        
+
         if (low < j)
             quickSort(a, low, j);
         if (i < high)
